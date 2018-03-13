@@ -166,7 +166,12 @@ iq_idx = 0
 hours_idx = 1
 Xiq2 = np.power(X[:,0],2).reshape(-1,1)
 Xhours2 = np.power(X[:,1],2).reshape(-1,1)
-Xiqhours = (X[:,0]*X[:,1]).reshape(-1,1)
+Xiqhours = np.matrix(np.empty(N)).T
+for i in range(0,N):
+    Xiqhours[i,0] = X[i,0]*X[i,1]
+#Xiqhours = (X[:,0]*X[:,1]).reshape(-1,1)
+#Xiqhours = np.mat(Xiqhours)
+
 X = np.asarray(np.bmat('X, Xiq2, Xhours2, Xiqhours'))
 
 # Fit ordinary least squares regression model
@@ -185,15 +190,15 @@ plot(y, y_est, '.g')
 xlabel('Wages content (true)'); ylabel('Wages content (estimated)')
 
 subplot(4,3,10)
-plot(Xfa2, residual, '.r')
+plot(Xiq2, residual, '.r')
 xlabel('iq ^2'); ylabel('Residual')
 
 subplot(4,3,11)
-plot(Xva2, residual, '.r')
+plot(Xhours2, residual, '.r')
 xlabel('hours ^2'); ylabel('Residual')
 
 subplot(4,3,12)
-plot(Xfava, residual, '.r')
+plot(Xiqhours, residual, '.r')
 xlabel('iq*hours'); ylabel('Residual')
 
 show()
