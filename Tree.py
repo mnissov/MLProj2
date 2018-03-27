@@ -25,7 +25,7 @@ Error_train = np.empty((len(tc),K))
 Error_test = np.empty((len(tc),K))
 
 k=0
-for train_index, test_index in CV.split(X):
+for train_index, test_index in CV.split(stdX,classY):
     print('Computing CV fold: {0}/{1}..'.format(k+1,K))
 
     # extract training and test set for current CV fold
