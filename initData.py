@@ -14,6 +14,7 @@ from matplotlib.pyplot import figure, legend, subplot, plot, hist, title, imshow
 from scipy.linalg import svd
 from scipy.io import loadmat
 import sklearn.linear_model as lm
+from sklearn import preprocessing
 # Load xls sheet with data
 #dataset = xlrd.open_workbook('wage2.xls').sheet_by_index(0)
 #data = pd.get_dummies(dataset)
@@ -39,9 +40,36 @@ for i, col_id in enumerate(range(1,8)):
     X[:,i] = np.matrix(doc.col_values(col_id, 1, n)).T
 
 classX = np.asarray(X)
-
+stdX = preprocessing.scale(classX)
 #N = len(y)
 #M = len(attributeNames)
 
 N, M = X.shape
 
+classNames = ['Poor', 'Lower', 'Middle', 'Upper']
+
+attributeNames = [
+    'hours',
+    'iq',
+    'educ',
+    'exper',
+    'tenure',
+    'age',
+    'black'
+    ]
+    
+    
+classY = np.asarray(np.mat(np.empty((N))).T).squeeze()
+for i in range(0,N):
+    if y[i] <= np.percentile(y,25):
+        classY[i] = 0
+    elif y[i] <= np.percentile(y,50):
+        classY[i] = 1
+    elif y[i] <= np.percentile(y,75):
+        classY[i] = 2
+    else: 
+        classY[i] = 3
+        
+C = len(classNames)
+
+#boxplot(preprocessing.scale(classX))
