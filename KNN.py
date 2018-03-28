@@ -19,6 +19,7 @@ K = 10
 CV = model_selection.KFold(n_splits=K,shuffle=True)
 CV2 = model_selection.KFold(n_splits=5,shuffle=True)
 CV3 = model_selection.LeaveOneOut()
+
 # Initialize variable
 valError = np.zeros((K,L))
 errors2 = np.zeros((N,L))

@@ -100,5 +100,5 @@ figure(1)
 def neval(xval):
     return np.argmax(clf.predict_proba(xval),1)
 
-dbplotf(X_test,y_test,neval,'auto')
+dbplotf(Xte,yte,neval,'auto')
 show()
