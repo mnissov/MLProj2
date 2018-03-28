@@ -15,74 +15,75 @@ from initData import *
 # Maximum number of neighbors
 L=40
 
-K = 10
-CV = model_selection.KFold(n_splits=K,shuffle=True)
-CV2 = model_selection.KFold(n_splits=5,shuffle=True)
+K1 = 5
+K2 = 10
+CV1 = model_selection.KFold(n_splits=K1,shuffle=True)
+CV2 = model_selection.KFold(n_splits=K2,shuffle=True)
 CV3 = model_selection.LeaveOneOut()
 
 # Initialize variable
-valError = np.zeros((K,L))
+valError = np.zeros((K2,L))
+sGenError = np.zeros((1,L))
+testError = np.zeros(K1)
+previous=1e100
+
+
+
 errors2 = np.zeros((N,L))
-bestError = np.ones([K,3])
-i=0
-j=0
+bestError = np.ones([K1,3])
+
+i = 0
 #for train_index, test_index in CV2.split(stdX):
-"""
-for train_index, test_index in CV2.split(stdX,classY):
-    print('Outer loop: [0]/[1]'.format(i+1,K))
-    parX = stdX[train_index,:]
-    parY = classY[train_index]
-    testX = stdX[test_index,:]
-    testY = classY[test_index]    
-"""    
-for train_index, test_index in CV.split(stdX,classY):
-    print('Crossvalidation fold: {0}/{1}'.format(j+1,K))    
+for train_index, test_index in CV1.split(stdX,classY):
+    j = 0
+    print('Outer loop: {0}/{1}'.format(i+1,K1))
+    X_par = stdX[train_index,:]
+    y_par = classY[train_index]
+    X_test = stdX[test_index,:]
+    y_test = classY[test_index]   
+    for train_index, test_index in CV2.split(stdX,classY):
+        print('\tCrossvalidation fold: {0}/{1}'.format(j+1,K2))    
+        
+        # extract training and test set for current CV fold
+        X_train = stdX[train_index,:]
+        y_train = classY[train_index]
+        X_val = stdX[test_index,:]
+        y_val = classY[test_index]
     
-    # extract training and test set for current CV fold
-    X_train = stdX[train_index,:]
-    y_train = classY[train_index]
-    X_val = stdX[test_index,:]
-    y_val = classY[test_index]
-
-    # Fit classifier and classify the test points (consider 1 to 40 neighbors)
-    for l in range(1,L+1):
-        knclassifier = KNeighborsClassifier(n_neighbors=l);
-        knclassifier.fit(X_train, y_train);
-        y_est = knclassifier.predict(X_val);
-        valError[j,l-1] = np.mean(y_est!=y_val)
-    j+=1
-
-#genE[i] = sum(valError[i],0)/len(parX)
-i+=1
+        # Fit classifier and classify the test points (consider 1 to 40 neighbors)
+        for s in range(1,L+1):
+            knclassifier = KNeighborsClassifier(n_neighbors=s)
+            knclassifier.fit(X_train, y_train)
+            y_est = knclassifier.predict(X_val)
+            
+            valError[j,s-1] = np.mean(y_est!=y_val)
+        j+=1
+    sGenError = (len(X_val)/len(X_par))*np.sum(valError,axis=0)   
+    
+    figure()
+    plot(100*np.mean(valError,axis=0))
+    xlabel('Number of neighbors')
+    ylabel('Classification error rate (%)')
+    show()    
+    
+    bestModel = KNeighborsClassifier(n_neighbors = np.argmin(sGenError)+1)
+    bestModel.fit(X_par,y_par)
+    
+    testError[i] = np.mean(bestModel.predict(X_test)!=y_test)
+    
+    if(testError[i]<previous):
+        absBest = bestModel
+        absBestPred = absBest.predict(X_test)
+        previous = testError[i]
+    #genE[i] = sum(valError[i],0)/len(parX)
+    i+=1
+genError = (len(X_test)/N)*np.sum(testError,axis=0)
     
 print('K-fold CV done')
-"""
-i=0    
-for train_index, test_index in CV3.split(stdX):
-    print('Crossvalidation fold: {0}/{1}'.format(i+1,N))    
-    
-    # extract training and test set for current CV fold
-    X_train = stdX[train_index,:]
-    y_train = classY[train_index]
-    X_test = stdX[test_index,:]
-    y_test = classY[test_index]
 
-    # Fit classifier and classify the test points (consider 1 to 40 neighbors)
-    for l in range(1,L+1):
-        knclassifier = KNeighborsClassifier(n_neighbors=l);
-        knclassifier.fit(X_train, y_train);
-        y_est = knclassifier.predict(X_test);
-        errors2[i,l-1] = np.sum(y_est[0]!=y_test[0])
 
-    i+=1
-"""
 # Plot the classification error rate
 # K fold
-figure()
-plot(100*np.mean(valError,axis=0))
-xlabel('Number of neighbors')
-ylabel('Classification error rate (%)')
-show()
 
 """
 # Leave one out
@@ -100,18 +101,7 @@ for c in range(C):
     plot(X_train[class_mask,0], X_train[class_mask,1], styles[c])
 """
 
-# K-nearest neighbors
-k=10
-
-# Distance metric (corresponds to 2nd norm, euclidean distance).
-# You can set dist=1 to obtain manhattan distance (cityblock distance).
-dist=2
-
-# Fit classifier and classify the test points
-knclassifier = KNeighborsClassifier(n_neighbors=k, p=dist);
-knclassifier.fit(X_train, y_train);
-y_est = knclassifier.predict(stdX);
-
+y_est = absBest.predict(stdX);
 
 # Plot the classfication results
 styles = ['ob', 'or', 'og', 'oy']
