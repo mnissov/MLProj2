@@ -27,11 +27,6 @@ sGenError = np.zeros((1,L))
 testError = np.zeros(K1)
 previous=1e100
 
-
-
-errors2 = np.zeros((N,L))
-bestError = np.ones([K1,3])
-
 i = 0
 #for train_index, test_index in CV2.split(stdX):
 for train_index, test_index in CV1.split(stdX,classY):
