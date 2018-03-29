@@ -83,24 +83,6 @@ genError = (len(X_test)/N)*np.sum(testError,axis=0)
 print('K-fold CV done')
 print('The best model has {:0.0f} neighbors with {:1.2f}% unbiased test error'.format(absBest.n_neighbors,100*previous))
 print('Generalized error: {:0.2f}%'.format(100*genError))
-# Plot the classification error rate
-# K fold
-
-"""
-# Leave one out
-figure()
-plot(100*sum(errors2,0)/N)
-xlabel('Number of neighbors')
-ylabel('Classification error rate (%)')
-show()
-"""
-"""
-figure(1)
-styles = ['.b', '.r', '.g', '.y']
-for c in range(C):
-    class_mask = (y_train==c)
-    plot(X_train[class_mask,0], X_train[class_mask,1], styles[c])
-"""
 
 y_est = absBest.predict(stdX);
 

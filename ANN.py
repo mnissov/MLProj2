@@ -91,13 +91,6 @@ print('Generalized error: {:0.2f}%'.format(100*genError))
 
 
 """
-print('Error rate: {0}%'.format(100*np.mean(error)))
-
-figure()
-plot(100*np.mean(error,axis=0))
-xlabel('Number of hidden layers')
-ylabel('Classification error rate (%)')
-show()
 
 #does not work? Something with dimension mismatch?
 CV2 = model_selection.KFold(n_splits=2,shuffle=True)

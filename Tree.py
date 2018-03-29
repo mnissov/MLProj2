@@ -99,12 +99,3 @@ show()
 out = tree.export_graphviz(absBest, out_file='BestGini.gvz', feature_names=attributeNames)
 
 graphviz.render('dot','png','BestGini.gvz')
-
-"""
-dtcGini = tree.DecisionTreeClassifier(criterion='gini', min_samples_split=2)
-dtcGini = dtcGini.fit(classX,classIndices)
-
-out = tree.export_graphviz(dtcGini, out_file='2sampleGini.gvz', feature_names=attributeNames)
-
-graphviz.render('dot','png','2sampleGini.gvz')
-"""
