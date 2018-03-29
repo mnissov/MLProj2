@@ -13,7 +13,11 @@ from sklearn import model_selection
 from initData import *
 
 # Maximum number of neighbors
+## Change L to look over larger area
 L=40
+tcStart = 1
+tcEnd = L+1
+tc = np.arange(tcStart, tcEnd, 1)
 
 K1 = 5
 K2 = 10
@@ -53,18 +57,20 @@ for train_index, test_index in CV1.split(stdX,classY):
             
             valError[j,s-1] = np.mean(y_est!=y_val)
         j+=1
-    sGenError = (len(X_val)/len(X_par))*np.sum(valError,axis=0)   
-    
-    figure()
-    plot(100*np.mean(valError,axis=0))
-    xlabel('Number of neighbors')
-    ylabel('Classification error rate (%)')
-    show()    
+    sGenError = (len(X_val)/len(X_par))*np.sum(valError,axis=0)
     
     bestModel = KNeighborsClassifier(n_neighbors = np.argmin(sGenError)+1)
     bestModel.fit(X_par,y_par)
     
     testError[i] = np.mean(bestModel.predict(X_test)!=y_test)
+    
+    print('\n\tBest model: {:0.0f} neighbors and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel.n_neighbors,100*np.mean(valError,axis=0)[bestModel.n_neighbors-1],100*testError[i]))
+    
+    figure()
+    plot(tc,100*np.mean(valError,axis=0))
+    xlabel('Number of neighbors')
+    ylabel('Classification error rate (%)')
+    show()     
     
     if(testError[i]<previous):
         absBest = bestModel
@@ -75,8 +81,8 @@ for train_index, test_index in CV1.split(stdX,classY):
 genError = (len(X_test)/N)*np.sum(testError,axis=0)
     
 print('K-fold CV done')
-
-
+print('The best model has {:0.0f} neighbors with {:1.2f}% unbiased test error'.format(absBest.n_neighbors,100*previous))
+print('Generalized error: {:0.2f}%'.format(100*genError))
 # Plot the classification error rate
 # K fold
 

@@ -14,6 +14,7 @@ import graphviz
 from initData import *
 
 # Tree complexity parameter - constraint on maximum depth
+## Change tcEnd to get more max depth; max_depth=tcEnd-1
 tcStart = 2
 tcEnd = 21
 tc = np.arange(tcStart, tcEnd, 1)
@@ -60,13 +61,12 @@ for train_index, test_index in CV1.split(stdX,classY):
         j+=1
     sGenError = (len(X_val)/len(X_par))*np.sum(valError,axis=0)   
     
-    """
-    figure()
-    plot(100*np.mean(valError,axis=0))
-    xlabel('Model depth')
-    ylabel('Classification error rate (%)')
-    show()    
-    """
+    bestModel = tree.DecisionTreeClassifier(criterion='gini', max_depth = np.argmin(sGenError)+2)
+    bestModel.fit(X_par,y_par)
+    
+    testError[i] = np.mean(bestModel.predict(X_test)!=y_test)
+    
+    print('\n\tBest model: {:0.0f} max depth and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel.max_depth,100*np.mean(valError,axis=0)[bestModel.max_depth-2],100*testError[i]))
     
     figure()
     plot(tc, 100*np.mean(trainError,axis=0))
@@ -74,12 +74,7 @@ for train_index, test_index in CV1.split(stdX,classY):
     xlabel('Model complexity (max tree depth)')
     ylabel('Error (CV K=)'.format(K1))
     legend(['Error_train','Error_test'])    
-    show()
-    
-    bestModel = tree.DecisionTreeClassifier(criterion='gini', max_depth = np.argmin(sGenError)+2)
-    bestModel.fit(X_par,y_par)
-    
-    testError[i] = np.mean(bestModel.predict(X_test)!=y_test)
+    show()    
     
     if(testError[i]<previous):
         absBest = bestModel
@@ -90,6 +85,9 @@ for train_index, test_index in CV1.split(stdX,classY):
 genError = (len(X_test)/N)*np.sum(testError,axis=0)
     
 print('K-fold CV done')
+print('The best model has {:0.0f} depth with {:1.2f}% unbiased test error'.format(absBest.max_depth,100*previous))
+print('Generalized error: {:0.2f}%'.format(100*genError))
+
     
 figure()
 boxplot(valError)

@@ -16,21 +16,15 @@ from scipy import stats
 from initData import *
 
 #Max hidden layers
+## Cange iEnd to research a larger span
 iStart = 1
 iEnd = 10
+tc = np.arange(iStart, iEnd+1, 1)
 
 K1 = 5
 K2 = 10
 CV1 = model_selection.KFold(n_splits=K1,shuffle=True)
 CV2 = model_selection.KFold(n_splits=K2,shuffle=True)
-
-"""
-error = np.zeros([K,iEnd-1])
-errors = np.ones(K)
-errorData = np.ones([K,3])
-bestnet = list()
-train_error = list()
-"""
 
 # Initialize variable
 valError = np.zeros((K2,iEnd))
@@ -68,16 +62,19 @@ for train_index, test_index in CV1.split(stdX,classY):
         j+=1
     sGenError = (len(X_val)/len(X_par))*np.sum(valError,axis=0)   
     
-    figure()
-    plot(100*np.mean(valError,axis=0))
-    xlabel('Number of hidden layers')
-    ylabel('Classification error rate (%)')
-    show()    
-    
     bestModel = nn.MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes = (np.argmin(sGenError)+1,), random_state=1)
     bestModel.fit(X_par,y_par)
     
     testError[i] = np.mean(bestModel.predict(X_test)!=y_test)
+    
+    print('\n\tBest model: {:0.0f} hidden layers and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel.hidden_layer_sizes[0],100*np.mean(valError,axis=0)[bestModel.hidden_layer_sizes[0]-1],100*testError[i]))
+
+    
+    figure()
+    plot(tc,100*np.mean(valError,axis=0))
+    xlabel('Number of hidden layers')
+    ylabel('Classification error rate (%)')
+    show()
     
     if(testError[i]<previous):
         absBest = bestModel
@@ -87,7 +84,8 @@ for train_index, test_index in CV1.split(stdX,classY):
     i+=1
 genError = (len(X_test)/N)*np.sum(testError,axis=0)
 print('K-fold CV done')
-
+print('The best model has {:0.0f} hidden layers with {:1.2f}% unbiased test error'.format(absBest.hidden_layer_sizes[0],100*previous))
+print('Generalized error: {:0.2f}%'.format(100*genError))
 
 
 
