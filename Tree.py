@@ -53,7 +53,7 @@ for train_index, test_index in CV1.split(stdX,classY):
         # Fit classifier and classify the test points (consider 1 to 40 neighbors)
         for s, t in enumerate(tc):
             # Fit decision tree classifier, Gini split criterion, different pruning levels
-            dtc = tree.DecisionTreeClassifier(criterion='gini', max_depth=t)
+            dtc = tree.DecisionTreeClassifier(criterion='entropy', max_depth=t)
             dtc = dtc.fit(X_train,y_train)
             y_est = dtc.predict(X_val)
             trainError[j,s] = np.mean(dtc.predict(X_train)!=y_train)
@@ -61,7 +61,7 @@ for train_index, test_index in CV1.split(stdX,classY):
         j+=1
     sGenError = (len(X_val)/len(X_par))*np.sum(valError,axis=0)   
     
-    bestModel = tree.DecisionTreeClassifier(criterion='gini', max_depth = np.argmin(sGenError)+2)
+    bestModel = tree.DecisionTreeClassifier(criterion='entropy', max_depth = np.argmin(sGenError)+2)
     bestModel.fit(X_par,y_par)
     
     testError[i] = np.mean(bestModel.predict(X_test)!=y_test)
@@ -74,7 +74,9 @@ for train_index, test_index in CV1.split(stdX,classY):
     xlabel('Model complexity (max tree depth)')
     ylabel('Error (CV K=)'.format(K1))
     legend(['Error_train','Error_test'])    
-    show()    
+    show()
+    fig.savefig('fig/treeErrorFold{0}.eps'.format(i+1), format='eps', dpi=1200)   
+    fig.clf
     
     if(testError[i]<previous):
         absBest = bestModel
@@ -86,16 +88,18 @@ genError = (len(X_test)/N)*np.sum(testError,axis=0)
     
 print('K-fold CV done')
 print('The best model has {:0.0f} depth with {:1.2f}% unbiased test error'.format(absBest.max_depth,100*previous))
-print('Generalized error: {:0.2f}%'.format(100*genError))
+print('Generalization error: {:0.2f}%'.format(100*genError))
 
     
 figure()
 boxplot(valError)
 xlabel('Model complexity (max tree depth)')
-ylabel('Test error across CV folds, K={0})'.format(K))
+ylabel('Test error across CV folds, K={0})'.format(K1))
 show()
+fig.savefig('fig/treeBox.eps', format='eps', dpi=1200)   
+fig.clf
 
 
-out = tree.export_graphviz(absBest, out_file='BestGini.gvz', feature_names=attributeNames)
+out = tree.export_graphviz(absBest, out_file='fig/BestGini.gvz', feature_names=attributeNames)
 
-graphviz.render('dot','png','BestGini.gvz')
+graphviz.render('dot','png','fig/BestGini.gvz')

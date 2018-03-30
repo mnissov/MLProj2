@@ -70,11 +70,13 @@ for train_index, test_index in CV1.split(stdX,classY):
     print('\n\tBest model: {:0.0f} hidden layers and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel.hidden_layer_sizes[0],100*np.mean(valError,axis=0)[bestModel.hidden_layer_sizes[0]-1],100*testError[i]))
 
     
-    figure()
+    fig=figure()
     plot(tc,100*np.mean(valError,axis=0))
     xlabel('Number of hidden layers')
     ylabel('Classification error rate (%)')
     show()
+    fig.savefig('fig/annErrorFold{0}.eps'.format(i+1), format='eps', dpi=1200)
+    fig.clf
     
     if(testError[i]<previous):
         absBest = bestModel
@@ -85,7 +87,7 @@ for train_index, test_index in CV1.split(stdX,classY):
 genError = (len(X_test)/N)*np.sum(testError,axis=0)
 print('K-fold CV done')
 print('The best model has {:0.0f} hidden layers with {:1.2f}% unbiased test error'.format(absBest.hidden_layer_sizes[0],100*previous))
-print('Generalized error: {:0.2f}%'.format(100*genError))
+print('Generalization error: {:0.2f}%'.format(100*genError))
 
 
 
@@ -112,4 +114,6 @@ def neval(xval):
 
 dbplotf(Xte,yte,neval,'auto')
 show()
+fig.savefig('fig/annClassification.eps', format='eps', dpi=1200)
+fig.clf
 """

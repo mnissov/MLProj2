@@ -66,11 +66,13 @@ for train_index, test_index in CV1.split(stdX,classY):
     
     print('\n\tBest model: {:0.0f} neighbors and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel.n_neighbors,100*np.mean(valError,axis=0)[bestModel.n_neighbors-1],100*testError[i]))
     
-    figure()
+    fig=figure()
     plot(tc,100*np.mean(valError,axis=0))
     xlabel('Number of neighbors')
     ylabel('Classification error rate (%)')
-    show()     
+    show()
+    fig.savefig('fig/knnErrorFold{0}.eps'.format(i+1), format='eps', dpi=1200)   
+    fig.clf
     
     if(testError[i]<previous):
         absBest = bestModel
@@ -82,13 +84,18 @@ genError = (len(X_test)/N)*np.sum(testError,axis=0)
     
 print('K-fold CV done')
 print('The best model has {:0.0f} neighbors with {:1.2f}% unbiased test error'.format(absBest.n_neighbors,100*previous))
-print('Generalized error: {:0.2f}%'.format(100*genError))
+print('Generalization error: {:0.2f}%'.format(100*genError))
+
 
 y_est = absBest.predict(stdX);
 
 # Plot the classfication results
+fig = figure()
 styles = ['ob', 'or', 'og', 'oy']
 for c in range(C):
     class_mask = (y_est==c)
     plot(stdX[class_mask,0], stdX[class_mask,1], styles[c])
-title('Synthetic data classification - KNN');
+title('Synthetic data classification - KNN')
+legend(classNames)
+fig.savefig('fig/knnClassification.eps', format='eps', dpi=1200)
+fig.clf
