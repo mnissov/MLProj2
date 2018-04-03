@@ -103,13 +103,13 @@ for train_index, test_index in CV1.split(stdX,classY):
     fig.clf
     
     if(testError1[i]<previous1):
-        absBest1 = bestModel1
-        absBestPred1 = absBest1.predict(X_test)
+        treeBest1 = bestModel1
+        absBestPred1 = treeBest1.predict(X_test)
         previous1 = testError1[i]
         
     if(testError2[i]<previous2):
-        absBest2 = bestModel2
-        absBestPred2 = absBest2.predict(X_test)
+        treeBest2 = bestModel2
+        absBestPred2 = treeBest2.predict(X_test)
         previous2 = testError2[i]
     #genE[i] = sum(valError[i],0)/len(parX)
     i+=1
@@ -117,8 +117,8 @@ genError1 = (len(X_test)/N)*np.sum(testError1,axis=0)
 genError2 = (len(X_test)/N)*np.sum(testError2,axis=0)
     
 print('K-fold CV done')
-print('The best gini model has {:0.0f} depth with {:1.2f}% unbiased test error'.format(absBest1.max_depth,100*previous1))
-print('The best entropy model has {:0.0f} depth with {:1.2f}% unbiased test error'.format(absBest2.max_depth,100*previous2))
+print('The best gini model has {:0.0f} depth with {:1.2f}% unbiased test error'.format(treeBest1.max_depth,100*previous1))
+print('The best entropy model has {:0.0f} depth with {:1.2f}% unbiased test error'.format(treeBest2.max_depth,100*previous2))
 print('Generalization error [gini:entropy]: [{:0.2f}:{:1.2f}]%'.format(100*genError1,100*genError2))
 
     
@@ -138,8 +138,8 @@ show()
 fig.savefig('fig/treeEntropy.eps', format='eps', dpi=1200)   
 fig.clf
 
-out1 = tree.export_graphviz(absBest1, out_file='fig/treeBestGini.gvz', feature_names=attributeNames)
-out2 = tree.export_graphviz(absBest2, out_file='fig/treeBestEntropy.gvz', feature_names=attributeNames)
+out1 = tree.export_graphviz(treeBest1, out_file='fig/treeBestGini.gvz', feature_names=attributeNames)
+out2 = tree.export_graphviz(treeBest2, out_file='fig/treeBestEntropy.gvz', feature_names=attributeNames)
 
 graphviz.render('dot','png','fig/treeBestGini.gvz')
 graphviz.render('dot','png','fig/treeBestEntropy.gvz')

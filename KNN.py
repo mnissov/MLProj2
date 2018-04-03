@@ -75,19 +75,19 @@ for train_index, test_index in CV1.split(stdX,classY):
     fig.clf
     
     if(testError[i]<previous):
-        absBest = bestModel
-        absBestPred = absBest.predict(X_test)
+        knnBest = bestModel
+        absBestPred = knnBest.predict(X_test)
         previous = testError[i]
     #genE[i] = sum(valError[i],0)/len(parX)
     i+=1
 genError = (len(X_test)/N)*np.sum(testError,axis=0)
     
 print('K-fold CV done')
-print('The best model has {:0.0f} neighbors with {:1.2f}% unbiased test error'.format(absBest.n_neighbors,100*previous))
+print('The best model has {:0.0f} neighbors with {:1.2f}% unbiased test error'.format(knnBest.n_neighbors,100*previous))
 print('Generalization error: {:0.2f}%'.format(100*genError))
 
 
-y_est = absBest.predict(stdX);
+y_est = knnBest.predict(stdX);
 
 # Plot the classfication results
 fig = figure()
