@@ -5,16 +5,21 @@ Created on Sun Mar 11 12:33:39 2018
 @author: Emma
 """
 
-from matplotlib.pyplot import figure, plot, subplot, title, xlabel, ylabel, show, clim
+from matplotlib.pyplot import figure, plot, subplot, title, xlabel, ylabel, show, clim, bar
 from scipy.io import loadmat
 import sklearn.linear_model as lm
 from sklearn import model_selection
 from toolbox_02450 import feature_selector_lr, bmplot
 import numpy as np
 from initData import *
+import neurolab as nl
+from scipy import stats
 
-# Subtract mean value from data
-X = X - np.ones((N,1))*X.mean(0)
+
+# Normalize data
+X = stats.zscore(X);
+#%%
+
 
 ## Crossvalidation
 # Create crossvalidation partition for evaluation
@@ -106,7 +111,7 @@ clim(-1.5,0)
 xlabel('Crossvalidation fold')
 ylabel('Attribute')
 
-
+#%%
 # Inspect selected feature coefficients effect on the entire dataset and
 # plot the fitted model residual error as function of each attribute to
 # inspect for systematic structure in the residual
@@ -131,6 +136,7 @@ else:
        ylabel('residual error')    
 show()
 
+ #%%
 
 # Display scatter plot of the selected features of the best model
 figure()
@@ -140,6 +146,8 @@ xlabel('Wages content (true)'); ylabel('Wages content (estimated)');
 #subplot(2,1,2)
 #hist(residual,40)
 show()
+
+#%%
 # Fit ordinary least squares regression model
 
 # Display scatter plot of all the features
@@ -160,12 +168,13 @@ xlabel('Wages content (true)'); ylabel('Wages content (estimated)');
 #The histogram doesn't work !!!!!!!
 show()
 
+#%%
 
 # Additional nonlinear attributes
-iq_idx = 0
-hours_idx = 1
-Xiq2 = np.power(X[:,0],2).reshape(-1,1)
-Xhours2 = np.power(X[:,1],2).reshape(-1,1)
+iq_idx = 1
+hours_idx = 0
+Xiq2 = np.power(X[:,1],2).reshape(-1,1)
+Xhours2 = np.power(X[:,0],2).reshape(-1,1)
 Xiqhours = np.matrix(np.empty(N)).T
 for i in range(0,N):
     Xiqhours[i,0] = X[i,0]*X[i,1]
@@ -203,3 +212,180 @@ xlabel('iq*hours'); ylabel('Residual')
 
 show()
 
+#%%
+# Additional nonlinear attributes
+educ_idx = 2
+expr_idx = 3
+Xeduc2 = np.power(X[:,2],2).reshape(-1,1)
+Xexpr2 = np.power(X[:,3],2).reshape(-1,1)
+Xeducexpr = np.matrix(np.empty(N)).T
+for i in range(0,N):
+    Xeducexpr[i,0] = X[i,2]*X[i,3]
+
+
+X = np.asarray(np.bmat('X, Xeduc2, Xexpr2, Xeducexpr'))
+
+# Fit ordinary least squares regression model
+model = lm.LinearRegression()
+model.fit(X,y)
+
+# Predict alcohol content
+y_est = model.predict(X)
+residual = y_est-y
+
+# Display plots
+figure(figsize=(12,8))
+
+subplot(2,1,1)
+plot(y, y_est, '.g')
+xlabel('Wages content (true)'); ylabel('Wages content (estimated)')
+
+subplot(4,3,10)
+plot(Xeduc2, residual, '.r')
+xlabel('educ ^2'); ylabel('Residual')
+
+subplot(4,3,11)
+plot(Xexpr2, residual, '.r')
+xlabel('exper ^2'); ylabel('Residual')
+
+subplot(4,3,12)
+plot(Xeducexpr, residual, '.r')
+xlabel('educ*exper'); ylabel('Residual')
+
+show()
+
+#%%Artificiual Neural Network
+C = 2
+mean_square_errors =[]
+for h in range(1,10):
+    # Parameters for neural network classifier
+    n_hidden_units = h      # number of hidden units
+    n_train = 2             # number of networks trained in each k-fold
+    learning_goal = 100     # stop criterion 1 (train mse to be reached)
+    max_epochs = 64         # stop criterion 2 (max epochs in training)
+    show_error_freq = 5     # frequency of training status updates
+    
+    # K-fold crossvalidation
+    K = 3                   # only three folds to speed up this example
+    CV = model_selection.KFold(K,shuffle=True)
+    
+    # Variable for classification error
+    errors = np.zeros(K)*np.nan
+    error_hist = np.zeros((max_epochs,K))*np.nan
+    bestnet = list()
+    k=0
+    for train_index, test_index in CV.split(X,y):
+        print('\nCrossvalidation fold: {0}/{1}'.format(k+1,K))    
+        
+        # extract training and test set for current CV fold
+        X_train = X[train_index,:]
+        y_train = y[train_index]
+        X_test = X[test_index,:]
+        y_test = y[test_index]
+        
+        best_train_error = np.inf
+        for i in range(n_train):
+            print('Training network {0}/{1}...'.format(i+1,n_train))
+            # Create randomly initialized network with 2 layers
+            ann = nl.net.newff([[-3, 3]]*M, [n_hidden_units, 1], [nl.trans.TanSig(),nl.trans.PureLin()])
+            if i==0:
+                bestnet.append(ann)
+            # train network
+            train_error = ann.train(X_train, y_train.reshape(-1,1), goal=learning_goal, epochs=max_epochs, show=show_error_freq)
+            if train_error[-1]<best_train_error:
+                bestnet[k]=ann
+                best_train_error = train_error[-1]
+                error_hist[range(len(train_error)),k] = train_error
+    
+        print('Best train error: {0}...'.format(best_train_error))
+        y_est = bestnet[k].sim(X_test).squeeze()
+        errors[k] = np.power(y_est-y_test,2).sum()/y_test.shape[0]
+        k+=1
+        
+        mean_square_errors.append(np.mean(errors))
+        
+        #break
+    
+
+
+# Print the average least squares error
+print('Mean-square error: {0}'.format(np.mean(errors)))
+
+figure(figsize=(6,7));
+subplot(2,1,1); bar(range(0,K),errors); title('Mean-square errors');
+subplot(2,1,2); plot(error_hist); title('Training error as function of BP iterations');
+figure(figsize=(6,7));
+subplot(2,1,1); plot(y_est); plot(y_test); title('Last CV-fold: est_y vs. test_y'); 
+subplot(2,1,2); plot((y_est-y_test)); title('Last CV-fold: prediction error (est_y-test_y)'); 
+show()
+
+Errors = [mean_square_errors[2],mean_square_errors[5],mean_square_errors[8],mean_square_errors[11],mean_square_errors[14],mean_square_errors[17],mean_square_errors[20],mean_square_errors[23],mean_square_errors[26]]
+
+x_axis=np.arange(1,11,1)
+line1, = plot(x_axis,Errors, label="Mean sqared error")
+legend = legend(handles=[line1], loc=2)
+show()
+
+
+#% The weights if the network can be extracted via
+#bestnet[0].layers[0].np['w'] # Get the weights of the first layer
+#bestnet[0].layers[0].np['b'] # Get the bias of the first layer
+
+#%%
+# Parameters for neural network classifier
+n_hidden_units = 5      # number of hidden units
+n_train = 2             # number of networks trained in each k-fold
+learning_goal = 100     # stop criterion 1 (train mse to be reached)
+max_epochs = 64         # stop criterion 2 (max epochs in training)
+show_error_freq = 5     # frequency of training status updates
+    
+# K-fold crossvalidation
+K = 3                   # only three folds to speed up this example
+CV = model_selection.KFold(K,shuffle=True)
+    
+# Variable for classification error
+errors = np.zeros(K)*np.nan
+error_hist = np.zeros((max_epochs,K))*np.nan
+bestnet = list()
+k=0
+for train_index, test_index in CV.split(X,y):
+    print('\nCrossvalidation fold: {0}/{1}'.format(k+1,K))    
+    
+    # extract training and test set for current CV fold
+    X_train = X[train_index,:]
+    y_train = y[train_index]
+    X_test = X[test_index,:]
+    y_test = y[test_index]
+        
+    best_train_error = np.inf
+    for i in range(n_train):
+        print('Training network {0}/{1}...'.format(i+1,n_train))
+        # Create randomly initialized network with 2 layers
+        ann = nl.net.newff([[-3, 3]]*M, [n_hidden_units, 1], [nl.trans.TanSig(),nl.trans.PureLin()])
+        if i==0:
+            bestnet.append(ann)
+        # train network
+        train_error = ann.train(X_train, y_train.reshape(-1,1), goal=learning_goal, epochs=max_epochs, show=show_error_freq)
+        if train_error[-1]<best_train_error:
+            bestnet[k]=ann
+            best_train_error = train_error[-1]
+            error_hist[range(len(train_error)),k] = train_error
+
+    print('Best train error: {0}...'.format(best_train_error))
+    y_est = bestnet[k].sim(X_test).squeeze()
+    errors[k] = np.power(y_est-y_test,2).sum()/y_test.shape[0]
+    k+=1
+        
+   #break 
+
+
+# Print the average least squares error
+print('Mean-square error: {0}'.format(np.mean(errors)))
+
+figure(figsize=(6,7));
+subplot(2,1,1); bar(range(0,K),errors); title('Mean-square errors');
+subplot(2,1,2); plot(error_hist); title('Training error as function of BP iterations');
+figure(figsize=(6,7));
+subplot(2,1,1); plot(y_est); plot(y_test); title('Last CV-fold: est_y vs. test_y'); 
+subplot(2,1,2); plot((y_est-y_test)); title('Last CV-fold: prediction error (est_y-test_y)'); 
+show()
