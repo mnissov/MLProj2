@@ -321,7 +321,8 @@ show()
 
 Errors = [mean_square_errors[2],mean_square_errors[5],mean_square_errors[8],mean_square_errors[11],mean_square_errors[14],mean_square_errors[17],mean_square_errors[20],mean_square_errors[23],mean_square_errors[26]]
 
-line1, = plot(Errors, label="Mean sqared error")
+x_axis=np.arange(1,11,1)
+line1, = plot(x_axis,Errors, label="Mean sqared error")
 legend = legend(handles=[line1], loc=2)
 show()
 
