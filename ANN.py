@@ -93,9 +93,8 @@ print('Generalization error: {:0.2f}%'.format(100*genError))
 
 
 """
-
 #does not work? Something with dimension mismatch?
-CV2 = model_selection.KFold(n_splits=2,shuffle=True)
+CV3 = model_selection.KFold(n_splits=2,shuffle=True)
 for train_index, test_index in CV2.split(stdX,classY):
     Xtr = stdX[train_index,:]
     ytr = classY[train_index]
@@ -107,13 +106,14 @@ NHiddenUnits = 9
 clf = nn.MLPClassifier(solver='lbfgs',alpha=1e-4,
                        hidden_layer_sizes=(NHiddenUnits,), random_state=1)
 clf.fit(Xtr,ytr)
-
+"""
 figure(1)
 def neval(xval):
     return np.argmax(clf.predict_proba(xval),1)
 
-dbplotf(Xte,yte,neval,'auto')
+print(X_test.shape,y_test.shape)
+
+dbplotf(X_test,y_test,neval,'auto')
 show()
 fig.savefig('fig/annClassification.eps', format='eps', dpi=1200)
 fig.clf
-"""
