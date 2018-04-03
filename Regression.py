@@ -181,14 +181,14 @@ for i in range(0,N):
 #Xiqhours = (X[:,0]*X[:,1]).reshape(-1,1)
 #Xiqhours = np.mat(Xiqhours)
 
-X = np.asarray(np.bmat('X, Xiq2, Xhours2, Xiqhours'))
+X0 = np.asarray(np.bmat('X, Xiq2, Xhours2, Xiqhours'))
 
 # Fit ordinary least squares regression model
 model = lm.LinearRegression()
-model.fit(X,y)
+model.fit(X0,y)
 
 # Predict alcohol content
-y_est = model.predict(X)
+y_est = model.predict(X0)
 residual = y_est-y
 
 # Display plots
@@ -223,14 +223,14 @@ for i in range(0,N):
     Xeducexpr[i,0] = X[i,2]*X[i,3]
 
 
-X = np.asarray(np.bmat('X, Xeduc2, Xexpr2, Xeducexpr'))
+X2 = np.asarray(np.bmat('X, Xeduc2, Xexpr2, Xeducexpr'))
 
 # Fit ordinary least squares regression model
 model = lm.LinearRegression()
-model.fit(X,y)
+model.fit(X2,y)
 
 # Predict alcohol content
-y_est = model.predict(X)
+y_est = model.predict(X2)
 residual = y_est-y
 
 # Display plots
@@ -257,7 +257,8 @@ show()
 #%%Artificiual Neural Network
 C = 2
 mean_square_errors =[]
-for h in range(1,10):
+for h in range(1,11):
+    print(h)
     # Parameters for neural network classifier
     n_hidden_units = h      # number of hidden units
     n_train = 2             # number of networks trained in each k-fold
@@ -290,19 +291,19 @@ for h in range(1,10):
             ann = nl.net.newff([[-3, 3]]*M, [n_hidden_units, 1], [nl.trans.TanSig(),nl.trans.PureLin()])
             if i==0:
                 bestnet.append(ann)
-            # train network
+                # train network
             train_error = ann.train(X_train, y_train.reshape(-1,1), goal=learning_goal, epochs=max_epochs, show=show_error_freq)
             if train_error[-1]<best_train_error:
                 bestnet[k]=ann
                 best_train_error = train_error[-1]
                 error_hist[range(len(train_error)),k] = train_error
-    
+
         print('Best train error: {0}...'.format(best_train_error))
         y_est = bestnet[k].sim(X_test).squeeze()
         errors[k] = np.power(y_est-y_test,2).sum()/y_test.shape[0]
         k+=1
         
-        mean_square_errors.append(np.mean(errors))
+    mean_square_errors.append(np.mean(errors))
         
         #break
     
@@ -319,10 +320,8 @@ subplot(2,1,1); plot(y_est); plot(y_test); title('Last CV-fold: est_y vs. test_y
 subplot(2,1,2); plot((y_est-y_test)); title('Last CV-fold: prediction error (est_y-test_y)'); 
 show()
 
-Errors = [mean_square_errors[2],mean_square_errors[5],mean_square_errors[8],mean_square_errors[11],mean_square_errors[14],mean_square_errors[17],mean_square_errors[20],mean_square_errors[23],mean_square_errors[26]]
-
 x_axis=np.arange(1,11,1)
-line1, = plot(x_axis,Errors, label="Mean sqared error")
+line1, = plot(x_axis,lc, label="Mean sqared error")
 legend = legend(handles=[line1], loc=2)
 show()
 
