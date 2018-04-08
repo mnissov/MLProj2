@@ -68,7 +68,14 @@ for train_index, test_index in CV1.split(stdX,classY):
     testError[i] = np.mean(bestModelANN.predict(X_test)!=y_test)
     
     print('\n\tBest model: {:0.0f} hidden layers and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModelANN.hidden_layer_sizes[0],100*np.mean(valError,axis=0)[bestModelANN.hidden_layer_sizes[0]-1],100*testError[i]))
-
+    
+# =============================================================================
+#   Saves the best model as a file
+    import pickle
+    filename = 'bestANN_model.sav'
+    modelSaveName = bestModelANN
+    pickle.dump(modelSaveName, open(filename, 'wb'))
+# =============================================================================
     
     fig=figure()
     plot(tc,100*np.mean(valError,axis=0))

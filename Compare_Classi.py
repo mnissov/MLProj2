@@ -14,14 +14,21 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn import model_selection, tree
 from scipy import stats
 
-from initData import classX, classY
-from ANN import annBest
-from KNN import knnBest
-from Tree import treeBest1
+from initData import stdX, classY
+
+import pickle
+
+#%%
+# Open models
+annBest = pickle.load(open('bestANN_model.sav', 'rb'))
+
+knnBest = pickle.load(open('bestKNN_model.sav', 'rb'))
+
+treeBest1 = pickle.load(open('bestTree_model.sav', 'rb'))
 
 #%%
 # Defines data
-X = classX
+X = stdX
 y = classY
 
 ## Crossvalidation
@@ -35,6 +42,7 @@ CV = model_selection.KFold(n_splits=K,shuffle=True)
 Error_ANN = np.empty((K,1))
 Error_KNN = np.empty((K,1))
 Error_Tree = np.empty((K,1))
+Error_Aver = np.empty((K,1))
 n_tested=0
 
 #%%
@@ -57,6 +65,7 @@ for train_index, test_index in CV.split(X,y):
     # Fit and evaluate ANN
     model2 = annBest
     y_ANN = model2.predict(X_test)
+    #print(y_ANN)
     Error_ANN[k] = 100*(y_ANN != y_test).sum().astype(float)/len(y_test)
     
     # Fit and evaluate Tree
@@ -64,6 +73,11 @@ for train_index, test_index in CV.split(X,y):
     y_Tree = model3.predict(X_test)
     Error_Tree[k] = 100*(y_Tree != y_test).sum().astype(float)/len(y_test)
     
+    # Fit and evaluate the most Frequent
+    y_int = y_test.astype(int)
+    counts = np.bincount(y_int)
+    y_Freq = np.argmax(counts)
+    Error_Aver[k] = 100*(y_Freq != y_test).sum().astype(float)/len(y_test)
 
     k+=1
 
@@ -72,9 +86,12 @@ print(Error_ANN)
 print("")
 print("Error of KNN:")
 print(Error_KNN)
+print("")
 print("Error of Tree:")
 print(Error_Tree)
-
+print("")
+print("Error of Average:")
+print(Error_Aver)
 #%%
 # Statistically compare the models by computing credibility intervals
 z = (Error_ANN-Error_KNN)
@@ -86,6 +103,8 @@ alpha = 0.05
 
 zL = zb + sig * stats.t.ppf(alpha/2, nu);
 zH = zb + sig * stats.t.ppf(1-alpha/2, nu);
+print('Credibility Interval (Lower): {:0.2f}%'.format(zL))
+print('Credibility Interval (Higher): {:0.2f}%'.format(zH))
 
 if zL <= 0 and zH >= 0 :
     print('Classifiers are not significantly different')        
@@ -95,8 +114,8 @@ else:
 #%%
 # Boxplot to compare classifier error distributions
 figure()
-boxplot(np.concatenate((Error_ANN, Error_KNN, Error_Tree),axis=1))
-xlabel('ANN   vs.   KNN   vs.   Tree')
+boxplot(np.concatenate((Error_ANN, Error_KNN, Error_Aver),axis=1))
+xlabel('ANN   vs.   KNN   vs.   Average')
 ylabel('Cross-validation error [%]')
 
 show()
