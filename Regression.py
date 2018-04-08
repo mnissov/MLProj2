@@ -298,7 +298,7 @@ for h in range(1,10):
                 error_hist[range(len(train_error)),k] = train_error
     
         print('Best train error: {0}...'.format(best_train_error))
-        y_est = bestnet[k].sim(X_test).squeeze()
+        y_est = bestnet[K].sim(X_test).squeeze()
         errors[k] = np.power(y_est-y_test,2).sum()/y_test.shape[0]
         k+=1
         

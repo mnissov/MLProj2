@@ -59,12 +59,14 @@ for train_index, test_index in CV1.split(stdX,classY):
         j+=1
     sGenError = (len(X_val)/len(X_par))*np.sum(valError,axis=0)
     
-    bestModel = KNeighborsClassifier(n_neighbors = np.argmin(sGenError)+1)
-    bestModel.fit(X_par,y_par)
+    bestModelKNN = KNeighborsClassifier(n_neighbors = np.argmin(sGenError)+1)
+    bestModelKNN.fit(X_par,y_par)
     
-    testError[i] = np.mean(bestModel.predict(X_test)!=y_test)
+    testError[i] = np.mean(bestModelKNN.predict(X_test)!=y_test)
     
-    print('\n\tBest model: {:0.0f} neighbors and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel.n_neighbors,100*np.mean(valError,axis=0)[bestModel.n_neighbors-1],100*testError[i]))
+    print('\n\tBest model: {:0.0f} neighbors and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModelKNN.n_neighbors,100*np.mean(valError,axis=0)[bestModelKNN.n_neighbors-1],100*testError[i]))
+    
+    
     
     fig=figure()
     plot(tc,100*np.mean(valError,axis=0))
@@ -75,7 +77,7 @@ for train_index, test_index in CV1.split(stdX,classY):
     fig.clf
     
     if(testError[i]<previous):
-        knnBest = bestModel
+        knnBest = bestModelKNN
         absBestPred = knnBest.predict(X_test)
         previous = testError[i]
     #genE[i] = sum(valError[i],0)/len(parX)
