@@ -114,8 +114,8 @@ else:
 #%%
 # Boxplot to compare classifier error distributions
 figure()
-boxplot(np.concatenate((Error_ANN, Error_KNN, Error_Aver),axis=1))
-xlabel('ANN   vs.   KNN   vs.   Average')
+boxplot(np.concatenate((Error_Tree, Error_KNN, Error_ANN, Error_Aver),axis=1))
+xlabel('Tree   vs.   KNN   vs.   ANN   vs.   Average')
 ylabel('Cross-validation error [%]')
 
 show()
