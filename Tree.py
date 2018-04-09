@@ -85,7 +85,7 @@ for train_index, test_index in CV1.split(stdX,classY):
     
     print('\n\tBest model: {:0.0f} max depth and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel1.max_depth,100*np.mean(valError1,axis=0)[bestModel1.max_depth-2],100*testError1[i]))
     print('\tBest model: {:0.0f} max depth and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel2.max_depth,100*np.mean(valError2,axis=0)[bestModel2.max_depth-2],100*testError2[i]))
-    
+     
     fig, (plot1,plot2)=subplots(1,2,sharey=True,sharex=True)
     
     plot1.plot(tc, 100*np.mean(trainError1,axis=0))
@@ -115,6 +115,15 @@ for train_index, test_index in CV1.split(stdX,classY):
     i+=1
 genError1 = (len(X_test)/N)*np.sum(testError1,axis=0)
 genError2 = (len(X_test)/N)*np.sum(testError2,axis=0)
+    
+# =============================================================================
+#   Saves the best model as a file
+import pickle
+filename = 'bestTree_model.sav'
+modelSaveName = treeBest1
+pickle.dump(modelSaveName, open(filename, 'wb'))
+# =============================================================================
+       
     
 print('K-fold CV done')
 print('The best gini model has {:0.0f} depth with {:1.2f}% unbiased test error'.format(treeBest1.max_depth,100*previous1))

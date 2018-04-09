@@ -62,13 +62,20 @@ for train_index, test_index in CV1.split(stdX,classY):
         j+=1
     sGenError = (len(X_val)/len(X_par))*np.sum(valError,axis=0)   
     
-    bestModel = nn.MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes = (np.argmin(sGenError)+1,), random_state=1)
-    bestModel.fit(X_par,y_par)
+    bestModelANN = nn.MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes = (np.argmin(sGenError)+1,), random_state=1)
+    bestModelANN.fit(X_par,y_par)
     
-    testError[i] = np.mean(bestModel.predict(X_test)!=y_test)
+    testError[i] = np.mean(bestModelANN.predict(X_test)!=y_test)
     
-    print('\n\tBest model: {:0.0f} hidden layers and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModel.hidden_layer_sizes[0],100*np.mean(valError,axis=0)[bestModel.hidden_layer_sizes[0]-1],100*testError[i]))
-
+    print('\n\tBest model: {:0.0f} hidden layers and {:1.2f}% biased test error and {:2.2f}% unbiased'.format(bestModelANN.hidden_layer_sizes[0],100*np.mean(valError,axis=0)[bestModelANN.hidden_layer_sizes[0]-1],100*testError[i]))
+    
+# =============================================================================
+#   Saves the best model as a file
+    import pickle
+    filename = 'bestANN_model.sav'
+    modelSaveName = bestModelANN
+    pickle.dump(modelSaveName, open(filename, 'wb'))
+# =============================================================================
     
     fig=figure()
     plot(tc,100*np.mean(valError,axis=0))
@@ -79,7 +86,7 @@ for train_index, test_index in CV1.split(stdX,classY):
     fig.clf
     
     if(testError[i]<previous):
-        annBest = bestModel
+        annBest = bestModelANN
         absBestPred = annBest.predict(X_test)
         previous = testError[i]
     #genE[i] = sum(valError[i],0)/len(parX)
