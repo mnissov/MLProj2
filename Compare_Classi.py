@@ -94,22 +94,43 @@ print("Error of Average:")
 print(Error_Aver)
 #%%
 # Statistically compare the models by computing credibility intervals
-z = (Error_ANN-Error_KNN)
-zb = z.mean()
-nu = K-1
-sig =  (z-zb).std()  / np.sqrt(K-1)
-# Sets the interval to 95%
-alpha = 0.05
 
-zL = zb + sig * stats.t.ppf(alpha/2, nu);
-zH = zb + sig * stats.t.ppf(1-alpha/2, nu);
-print('Credibility Interval (Lower): {:0.2f}%'.format(zL))
-print('Credibility Interval (Higher): {:0.2f}%'.format(zH))
+def credibilityInterval(x):
+    z = x
+    zb = z.mean()
+    nu = K-1
+    sig =  (z-zb).std()  / np.sqrt(K-1)
+    # Sets the interval to 95%
+    alpha = 0.05
+    
+    zL = zb + sig * stats.t.ppf(alpha/2, nu);
+    zH = zb + sig * stats.t.ppf(1-alpha/2, nu);
+    
+# =============================================================================
+#     print('Credibility Interval (Lower): {:0.2f}%'.format(zL))
+#     print('Credibility Interval (Higher): {:0.2f}%'.format(zH))
+#     
+#     if zL <= 0 and zH >= 0 :
+#         print('Classifiers are not significantly different')        
+#     else:
+#         print('Classifiers are significantly different.')
+# =============================================================================
+    return zL, zH
 
-if zL <= 0 and zH >= 0 :
-    print('Classifiers are not significantly different')        
-else:
-    print('Classifiers are significantly different.')
+zTK = credibilityInterval(Error_Tree-Error_KNN)
+print("Tree vs. KNN: %s" % (zTK,))
+zTA = credibilityInterval(Error_Tree-Error_ANN)
+print("Tree vs. ANN: %s" % (zTA,))
+zTAv = credibilityInterval(Error_Tree-Error_Aver)
+print("Tree vs. Average: %s" % (zTAv,))
+zKA = credibilityInterval(Error_KNN-Error_ANN)
+print("KNN vs. ANN: %s" % (zKA,))
+zKAv = credibilityInterval(Error_KNN-Error_Aver)
+print("KNN vs. Average: %s" % (zKAv,))
+ZAAv = credibilityInterval(Error_ANN-Error_Aver) 
+print("ANN vs. Average: %s" % (ZAAv,))  
+
+
 
 #%%
 # Boxplot to compare classifier error distributions

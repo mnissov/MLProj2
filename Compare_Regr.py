@@ -27,6 +27,8 @@ bestLinear = pickle.load(open('bestModelRegrLinear.sav', 'rb'))
 
 bestFeatures = pickle.load(open('bestFeatures.sav', 'rb'))
 
+bestLinearNoFeatures = pickle.load(open('bestModelRegrLinearNoFeature.sav', 'rb'))
+
 #%%
 # Defines data
 X = stats.zscore(X);
@@ -47,6 +49,8 @@ CV = model_selection.KFold(n_splits=K,shuffle=True)
 # Initialize variables
 Error_ANN = np.empty((K,1))
 Error_Linear = np.empty((K,1))
+Error_Linear_WO = np.empty((K,1))
+Error_Average = np.empty((K,1))
 n_tested=0
 
 #%%
@@ -102,20 +106,62 @@ for train_index, test_index in CV.split(X,y):
     
     Error_ANN[k] = 100*(y_ANN != y_test).sum().astype(float)/len(y_test)
     
-    
 # =============================================================================
+    # Fit and evaluate Linear (without Feature selection)
+    model3 = bestLinearNoFeatures
+    y_Linear_WO_est = model3.predict(X_test)
+    
+    # Classifying the predicted score
+    n = len(y_Linear_WO_est)
+    y_Linear_WO = np.zeros(n)
+    
+    for i in range(0,n):
+        if y_Linear_WO_est[i] <= np.percentile(y,25):
+            y_Linear_WO[i] = 0
+        elif y_Linear_WO_est[i] <= np.percentile(y,50):
+            y_Linear_WO[i] = 1
+        elif y_Linear_WO_est[i] <= np.percentile(y,75):
+            y_Linear_WO[i] = 2
+        else: 
+            y_Linear_WO[i] = 3
+    
+    Error_Linear_WO[k] = 100*(y_Linear_WO != y_test).sum().astype(float)/len(y_test)
+
+# =============================================================================
+    # Average
+    y_wages = y[test_index]
+    y_average = np.mean(y_wages)
+    
+    # Classifying the predicted score 
+    for i in range(1):
+        if y_average <= np.percentile(y,25):
+            y_average = 0
+        elif y_average <= np.percentile(y,50):
+            y_average = 1
+        elif y_average <= np.percentile(y,75):
+            y_average = 2
+        else: 
+            y_average = 3
+    
+    Error_Average[k] = 100*(y_average != y_test).sum().astype(float)/len(y_test)
+
     k+=1
 
 print("Error of Linear:")
 print(Error_Linear)
 print("")
+print("Error of Linear (without feature selection):")
+print(Error_Linear_WO)
+print("")
 print("Error of ANN:")
 print(Error_ANN)
-
+print("")
+print("Error of Average:")
+print(Error_Average)
 
 #%%
 # Statistically compare the models by computing credibility intervals
-z = (Error_Linear-Error_ANN)
+z = (Error_ANN-Error_Average)
 zb = z.mean()
 nu = K-1
 sig =  (z-zb).std()  / np.sqrt(K-1)
@@ -124,10 +170,9 @@ alpha = 0.05
 
 zL = zb + sig * stats.t.ppf(alpha/2, nu);
 zH = zb + sig * stats.t.ppf(1-alpha/2, nu);
-# =============================================================================
-# print('Credibility Interval (Lower): {:0.2f}%'.format(zL))
-# print('Credibility Interval (Higher): {:0.2f}%'.format(zH))
-# =============================================================================
+
+print('Credibility Interval (Lower): {:0.2f}'.format(zL))
+print('Credibility Interval (Higher): {:0.2f}'.format(zH))
 
 if zL <= 0 and zH >= 0 :
     print('Classifiers are not significantly different')        
@@ -137,8 +182,8 @@ else:
 #%%
 # Boxplot to compare classifier error distributions
 figure()
-boxplot(np.concatenate((Error_Linear, Error_ANN),axis=1))
-xlabel('Linear   vs.   ANN')
+boxplot(np.concatenate((Error_Linear, Error_Linear_WO, Error_ANN, Error_Average),axis=1))
+xlabel('Linear (with FSS)   vs.   Linear (without FSS)   vs.   ANN   vs. Average')
 ylabel('Cross-validation error [%]')
 
 show()

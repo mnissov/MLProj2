@@ -59,6 +59,15 @@ for train_index, test_index in CV.split(X):
 
     # Compute squared error with all features selected (no feature selection)
     m = lm.LinearRegression(fit_intercept=True).fit(X_train, y_train)
+    
+# =============================================================================
+# Save model
+    import pickle
+    filename = 'bestModelRegrLinearNoFeature.sav'
+    modelSaveName = m
+    pickle.dump(modelSaveName, open(filename, 'wb'))
+# =============================================================================
+    
     Error_train[k] = np.square(y_train-m.predict(X_train)).sum()/y_train.shape[0]
     Error_test[k] = np.square(y_test-m.predict(X_test)).sum()/y_test.shape[0]
 
